@@ -1,0 +1,11 @@
+numpy
+pandas
+torch
+transformers
+sentence-transformers
+xgboost
+scikit-learn
+joblib
+PyYAML
+tqdm
+jinja2

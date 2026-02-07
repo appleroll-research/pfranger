@@ -1,2 +1,7 @@
 .DS_Store
 */.DS_Store
+venv/
+
+# Do not include test files
+ranger_report.html
+JBB.csv
