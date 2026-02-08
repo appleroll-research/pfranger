@@ -1,4 +1,3 @@
-
 import json
 import os
 from jinja2 import Template
@@ -15,7 +14,6 @@ REPORT_TEMPLATE = """
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
         .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        h1, h2 { color: #333; }
         .summary-cards { display: flex; gap: 20px; margin-bottom: 20px; }
         .card { flex: 1; padding: 15px; background: #f8f9fa; border-radius: 6px; border-left: 4px solid #007bff; }
         .card h3 { margin: 0 0 10px 0; font-size: 14px; color: #666; }
@@ -36,7 +34,7 @@ REPORT_TEMPLATE = """
         .details-row { display: none; background: #fafafa; }
         .details-row td { white-space: pre-wrap; word-break: break-all; }
         .expand-btn { cursor: pointer; color: #007bff; border: none; background: none; }
-        .search-box { width: 100%; padding: 10px; margin-bottom: 20px; font-size: 16px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        .search-box { width: 100%; padding: 10px; margin-bottom: 20px; font-size: 16px; border: 1px solid #ddd; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -67,15 +65,9 @@ REPORT_TEMPLATE = """
             <div class="chart-container">
                 <canvas id="pieChart"></canvas>
             </div>
-            {% if has_time_data %}
-            <div class="chart-container" style="flex: 2;">
-                <canvas id="timeChart"></canvas>
+            <div class="chart-container" {% if has_time_data %}style="flex: 2;"{% endif %}>
+                <canvas id="{% if has_time_data %}timeChart{% else %}histChart{% endif %}"></canvas>
             </div>
-            {% else %}
-            <div class="chart-container">
-                <canvas id="histChart"></canvas>
-            </div>
-            {% endif %}
         </div>
         
         {% if has_time_data %}
@@ -94,9 +86,7 @@ REPORT_TEMPLATE = """
                 <tr>
                     <th width="50"></th>
                     <th>ID</th>
-                    {% if has_time_data %}
-                    <th>Time</th>
-                    {% endif %}
+                    {% if has_time_data %}<th>Time</th>{% endif %}
                     <th>Status</th>
                     <th>Score</th>
                     <th>Prompt</th>
@@ -107,9 +97,7 @@ REPORT_TEMPLATE = """
                 <tr>
                     <td><button class="expand-btn" onclick="toggleRow({{ loop.index }})">▶</button></td>
                     <td>{{ item.index }}</td>
-                    {% if has_time_data %}
-                    <td>{{ item.timestamp }}</td>
-                    {% endif %}
+                    {% if has_time_data %}<td>{{ item.timestamp }}</td>{% endif %}
                     <td>
                         {% if item.is_malicious %}
                             <span class="badge badge-danger">Malicious</span>
@@ -124,11 +112,8 @@ REPORT_TEMPLATE = """
                 </tr>
                 <tr id="row-{{ loop.index }}" class="details-row">
                     <td colspan="{% if has_time_data %}6{% else %}5{% endif %}">
-                        <strong>Full Prompt:</strong><br>
-                        {{ item.prompt }}
-                        <br><br>
-                        <strong>Analysis:</strong><br>
-                        <pre>{{ item | tojson(indent=2) }}</pre>
+                        <strong>Full Prompt:</strong><br>{{ item.prompt }}<br><br>
+                        <strong>Analysis:</strong><br><pre>{{ item | tojson(indent=2) }}</pre>
                     </td>
                 </tr>
                 {% endfor %}
@@ -137,7 +122,7 @@ REPORT_TEMPLATE = """
     </div>
 
     <script>
-        // Pie Chart
+        // Charts
         const pieCtx = document.getElementById('pieChart').getContext('2d');
         new Chart(pieCtx, {
             type: 'doughnut',
@@ -151,78 +136,37 @@ REPORT_TEMPLATE = """
             options: { maintainAspectRatio: false, plugins: { title: { display: true, text: 'Detection Ratio' } } }
         });
 
-        // Histogram Data
         const scores = {{ scores | tojson }};
         const bins = Array(20).fill(0);
-        scores.forEach(s => {
-            const binIndex = Math.min(Math.floor(s * 20), 19);
-            bins[binIndex]++;
-        });
-        const labels = Array.from({length: 20}, (_, i) => (i/20).toFixed(2) + '-' + ((i+1)/20).toFixed(2));
-
+        scores.forEach(s => bins[Math.min(Math.floor(s * 20), 19)]++);
+        
         const histCtx = document.getElementById('histChart').getContext('2d');
         new Chart(histCtx, {
             type: 'bar',
             data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Score Distribution',
-                    data: bins,
-                    backgroundColor: '#007bff'
-                }]
+                labels: Array.from({length: 20}, (_, i) => (i/20).toFixed(2) + '-' + ((i+1)/20).toFixed(2)),
+                datasets: [{ label: 'Score Distribution', data: bins, backgroundColor: '#007bff' }]
             },
-            options: { 
-                maintainAspectRatio: false, 
-                plugins: { title: { display: true, text: 'Malicious Score Distribution' } },
-                scales: { x: { title: { display: true, text: 'Score' } }, y: { title: { display: true, text: 'Count' } } }
-            }
+            options: { maintainAspectRatio: false, plugins: { title: { display: true, text: 'Score Distribution' } } }
         });
         
         {% if has_time_data %}
-        // Time Series Chart
-        const timeData = {{ time_series | tojson }};
-        
-        // Simple implementation: Scatter plot with color coding
-        const scatterData = timeData.map((d, i) => ({
-            x: i, 
-            // Actually let's try to parse date
-            x: new Date(d.t).getTime(),
-            y: d.s, // Score
-            label: d.t
-        }));
-        
         const timeCtx = document.getElementById('timeChart').getContext('2d');
         new Chart(timeCtx, {
             type: 'scatter',
             data: {
                 datasets: [{
                     label: 'Prompt Scores over Time',
-                    data: scatterData,
-                    backgroundColor: scatterData.map(d => d.y > 0.5 ? '#dc3545' : '#28a745')
+                    data: {{ time_series | tojson }}.map(d => ({ x: new Date(d.t).getTime(), y: d.s })),
+                    backgroundColor: c => c.raw.y > 0.5 ? '#dc3545' : '#28a745'
                 }]
             },
             options: {
                 maintainAspectRatio: false,
-                plugins: { 
-                    title: { display: true, text: 'Malicious Scores vs Time' },
-                    tooltip: {
-                         callbacks: {
-                             label: function(context) {
-                                 return context.raw.label + ': ' + context.raw.y.toFixed(2);
-                             }
-                         }
-                    }
-                },
+                plugins: { title: { display: true, text: 'Scores vs Time' } },
                 scales: {
-                    x: { 
-                        type: 'linear', 
-                        position: 'bottom',
-                        title: { display: true, text: 'Time (Timestamp)' },
-                        ticks: {
-                            callback: function(value) { return new Date(value).toLocaleTimeString(); }
-                        }
-                    },
-                    y: { title: { display: true, text: 'Malicious Score' }, min: 0, max: 1 }
+                    x: { type: 'linear', ticks: { callback: v => new Date(v).toLocaleTimeString() } },
+                    y: { min: 0, max: 1 }
                 }
             }
         });
@@ -234,36 +178,17 @@ REPORT_TEMPLATE = """
         }
 
         function searchTable() {
-            var input, filter, table, tr, i;
-            input = document.getElementById("searchInput");
-            filter = input.value.toUpperCase();
-            table = document.getElementById("promptsTable");
-            tr = table.getElementsByTagName("tr");
+            const filter = document.getElementById("searchInput").value.toUpperCase();
+            const rows = document.getElementById("promptsTable").getElementsByTagName("tr");
             
-            // Loop through all table rows, and hide those who don't match the search query
-            // Skip header (index 0)
-            for (i = 1; i < tr.length; i += 2) {
-                // Main row is i, Details row is i+1
-                var mainRow = tr[i];
-                var detailsRow = tr[i+1];
+            for (let i = 1; i < rows.length; i += 2) {
+                const mainRow = rows[i];
+                const cells = mainRow.getElementsByTagName("td");
+                const promptText = cells[cells.length - 1].innerText.toUpperCase();
                 
-                if (!mainRow) continue;
-                
-                // Search Prompt text (index 4 - last column)
-                // ID is index 1, Prompt is last.
-                var tds = mainRow.getElementsByTagName("td");
-                var promptTd = tds[tds.length - 1]; // Last column is Prompt
-                
-                if (promptTd) {
-                    var txtValue = promptTd.textContent || promptTd.innerText;
-                    if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                        mainRow.style.display = "";
-                        detailsRow.style.display = "none";
-                    } else {
-                        mainRow.style.display = "none";
-                        detailsRow.style.display = "none";
-                    }
-                }
+                const display = promptText.indexOf(filter) > -1 ? "" : "none";
+                mainRow.style.display = display;
+                rows[i+1].style.display = "none"; 
             }
         }
     </script>
@@ -277,60 +202,35 @@ class Reporter:
     
     def generate(self, results):
         total = len(results)
-        
-        # safely handle missing keys using .get() with defaults
         malicious = [r for r in results if r.get('is_malicious', False)]
-        
-        # Check for uncertain: Not malicious but uncertainty > 0.5
-        # We need to make sure we don't double count.
-        # Definition: 
-        # Malicious: is_malicious=True
-        # Uncertain: is_malicious=False AND uncertainty > 0.5
-        # Safe: is_malicious=False AND uncertainty <= 0.5
-        
         uncertain = [r for r in results if not r.get('is_malicious', False) and r.get('uncertainty', 0.0) > 0.5]
         safe = [r for r in results if not r.get('is_malicious', False) and r.get('uncertainty', 0.0) <= 0.5]
         
-        malicious_count = len(malicious)
-        uncertain_count = len(uncertain)
-        safe_count = len(safe)
-        
-        scores = [r.get('malicious_score', 0.0) for r in results]
-        
-        # Check for time data
-        has_time_data = any('timestamp' in r for r in results)
+        # Prepare time series data if available
         time_series = []
-        if has_time_data:
-            # Prepare data for chart: [{'t': timestamp, 's': score}]
-            for r in results:
-                if 'timestamp' in r and r.get('timestamp'):
-                    time_series.append({
-                        't': r['timestamp'],
-                        's': r.get('malicious_score', 0.0)
-                    })
-            # Sort by time
-            time_series.sort(key=lambda x: x['t'])
+        if any('timestamp' in r for r in results):
+            time_series = sorted([
+                {'t': r['timestamp'], 's': r.get('malicious_score', 0.0)}
+                for r in results if r.get('timestamp')
+            ], key=lambda x: x['t'])
 
-        # Sort ALL prompts by ID (index) for auditing.
-        all_prompts = sorted(results, key=lambda x: x.get('index', 0))
-        
+        # Render report
         template = Template(REPORT_TEMPLATE)
         html_content = template.render(
             date=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             total_prompts=total,
-            malicious_count=malicious_count,
-            malicious_percent=(malicious_count/total*100) if total > 0 else 0,
-            uncertain_count=uncertain_count,
-            uncertain_percent=(uncertain_count/total*100) if total > 0 else 0,
-            safe_count=safe_count,
-            prompts=all_prompts,
-            scores=scores,
-            has_time_data=has_time_data,
+            malicious_count=len(malicious),
+            malicious_percent=(len(malicious)/total*100) if total > 0 else 0,
+            uncertain_count=len(uncertain),
+            uncertain_percent=(len(uncertain)/total*100) if total > 0 else 0,
+            safe_count=len(safe),
+            prompts=sorted(results, key=lambda x: x.get('index', 0)),
+            scores=[r.get('malicious_score', 0) for r in results],
+            has_time_data=bool(time_series),
             time_series=time_series
         )
         
         with open(self.output_path, 'w') as f:
             f.write(html_content)
         
-        print(f"Report generated at {self.output_path}")
-
+        print(f"Report saved to {self.output_path}")
