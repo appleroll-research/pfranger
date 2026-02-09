@@ -1,8 +1,12 @@
 from setuptools import setup, find_packages
+from pathlib import Path
+
+this_directory = Path(__file__).parent
+long_description = (this_directory / "README.md").read_text(encoding="utf-8")
 
 setup(
-    name="promptforest-ranger",
-    version="0.1.0",
+    name="pfranger",
+    version="0.1.1",
     packages=find_packages(),
     install_requires=[
         "numpy",
@@ -15,13 +19,16 @@ setup(
         "joblib",
         "PyYAML",
         "tqdm",
-        "jinja2"
+        "jinja2",
+        "promptforest"
     ],
     entry_points={
         'console_scripts': [
             'ranger=ranger.cli:main',
         ],
     },
-    author="PromptForest Team",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    include_package_data=True,
     description="CLI tool for auditing prompts using PromptForest",
 )

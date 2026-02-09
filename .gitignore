@@ -3,9 +3,11 @@
 venv/
 
 # Do not include test files
-ranger_report.html
 JBB.csv
+*.csv
 
-*/__pycache__/*
+*/__pycache__
 *.yaml
-
+*.html
+*.egg-info
+dist/

@@ -1,14 +1,12 @@
-import sys
-import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
-from promptforest.lib import PFEnsemble
-from promptforest.config import DEFAULT_CONFIG, MODELS_DIR
 import contextlib
 import io
 
-# Benchmark Defaults
-BENCHMARK_CONFIG = {
+from promptforest.lib import PFEnsemble
+from promptforest.config import DEFAULT_CONFIG, MODELS_DIR
+
+DEFAULT_CONFIG = {
     "models": [
         {"name": "llama_guard", "type": "hf", "path": "llama_guard", "enabled": True, "accuracy_weight": 0.6},
         {"name": "vijil", "type": "hf", "path": "vijil_dome", "enabled": True, "accuracy_weight": 1.0},
@@ -22,14 +20,15 @@ class Scanner:
     def __init__(self, config=None):
         if not config:
             self.config = DEFAULT_CONFIG.copy()
-            self.config['models'] = BENCHMARK_CONFIG['models']
-            self.config['settings'].update(BENCHMARK_CONFIG['settings'])
+            self.config['models'] = DEFAULT_CONFIG['models']
+            self.config['settings'].update(DEFAULT_CONFIG['settings'])
         else:
             self.config = config
 
         print("Initializing PromptForest Engine...")
         
         # Silence initialization unless models need downloading
+        # 
         if self._check_models_present(self.config):
             with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
                 self.ensemble = PFEnsemble(config=self.config)

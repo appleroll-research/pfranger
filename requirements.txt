@@ -9,3 +9,4 @@ joblib
 PyYAML
 tqdm
 jinja2
+promptforest

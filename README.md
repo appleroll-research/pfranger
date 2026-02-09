@@ -1,56 +1,53 @@
 # PromptForest Ranger
 
-PromptForest Ranger is a high-performance CLI tool for auditing LLM prompts for injection attacks and jailbreaks. It leverages the PromptForest ensemble engine (Llama Guard, Vijil, XGBoost) to scan datasets and generate comprehensive HTML reports.
+PromptForest Ranger (or PFRanger) is a CLI tool for auditing LLM prompts for injection attacks and jailbreaks. It leverages the PromptForest ensemble engine to scan datasets and generate comprehensive and accurate HTML reports.
 
 ## Features
 
-- **Multi-Format Support**: Scan CSV, JSON, JSONL, and TXT files.
-- **Parallel Processing**: Multi-threaded scanning for large datasets.
-- **Advanced Reporting**: Interactive HTML reports with charts and time-series analysis.
-- **Configurable**: Uses PromptForest configuration standards.
+### Works Offline
+All data stays on your computer. The internet is only required to download models onto your computer. 
+
+### Accurate and Reliable
+Ranger utilises the PromptForest engine, which provides responses that are not only accurate, but also calibrated and reliable. 
+
+### Fast
+Startup latency of ~3s and an average request rate of 24 prompts/s with 3 workers.
 
 ## Installation
 
 ```bash
-git clone https://github.com/promptforest/ranger.git
-cd ranger
-pip install -r requirements.txt
+pip install pfranger
 ```
 
 ## Usage
 
 ```bash
-python3 -m ranger.cli [INPUT_FILE] [OPTIONS]
+ranger [INPUT_FILE] [OPTIONS]
 ```
 
 ### Examples
 
 Scan a CSV file:
 ```bash
-python3 -m ranger.cli validation_prompts.csv --col text
+ranger validation_prompts.csv -p text
 ```
 
 Scan with custom configuration:
 ```bash
-python3 -m ranger.cli prompts.jsonl --config my_config.yaml
-```
-
-Generate report with time-series data:
-```bash
-python3 -m ranger.cli logs.csv --time-col timestamp
+ranger prompts.jsonl -c my_config.yaml
 ```
 
 ### Arguments
 
 | Argument | Description | Default |
 |----------|-------------|---------|
-| `input_file` | Path to the file containing prompts | Required |
-| `--output`, `-o` | Output path for HTML report | `ranger_report.html` |
-| `--format`, `-f` | Force input format (csv, json, jsonl, txt) | Auto-detect |
-| `--col`, `-c` | Column name for prompts (CSV/JSON) | `prompt` |
-| `--time-col` | Column name for timestamp | None |
+| `input` | Path to the file containing prompts | Required |
+| `--output`, `-o` | Output path for HTML report | `report.html` |
+| `--input-format`, `-f` | Force input format (csv, json, jsonl, txt) | Auto-detect |
+| `--prompt-col`, `-p` | Column name for prompts (CSV/JSON) | `prompt` |
+| `--timestamp-col`, `-t` | Column name for timestamp | None |
 | `--workers`, `-w` | Number of parallel worker threads | 4 |
-| `--config` | Path to PromptForest YAML configuration file | Benchmark Defaults |
+| `--config`, `-c` | Path to PromptForest YAML configuration file | Benchmark Defaults |
 
 ## Configuration
 

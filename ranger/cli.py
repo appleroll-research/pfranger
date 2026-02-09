@@ -1,36 +1,32 @@
 import argparse
 import sys
-import pandas as pd
+
 import json
 import os
-
-# Ensure promptforest is importable for dev environment
-dev_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../promptforest'))
-if os.path.exists(dev_path) and dev_path not in sys.path:
-    sys.path.append(dev_path)
 
 from .scanner import Scanner
 from .reporter import Reporter
 
-def load_prompts(file_path, format=None, column='prompt', time_col=None):
+def load_prompts(file_path, input_format=None, prompt_col='prompt', timestamp_col=None):
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"File not found: {file_path}")
 
     ext = os.path.splitext(file_path)[1].lower()
-    fmt = format.lower() if format else ext.lstrip('.')
+    fmt = input_format.lower() if input_format else ext.lstrip('.')
 
     items = []
     try:
         if fmt == 'csv':
+            import pandas as pd
             df = pd.read_csv(file_path)
-            col = column if column in df.columns else df.columns[0]
-            if time_col and time_col in df.columns:
-                df[time_col] = pd.to_datetime(df[time_col], errors='coerce')
+            col = prompt_col if prompt_col in df.columns else df.columns[0]
+            if timestamp_col and timestamp_col in df.columns:
+                df[timestamp_col] = pd.to_datetime(df[timestamp_col], errors='coerce')
             
             for _, row in df.iterrows():
                 item = {'prompt': str(row[col])}
-                if time_col and time_col in df.columns and pd.notnull(row[time_col]):
-                    item['timestamp'] = row[time_col].isoformat()
+                if timestamp_col and timestamp_col in df.columns and pd.notnull(row[timestamp_col]):
+                    item['timestamp'] = row[timestamp_col].isoformat()
                 items.append(item)
                  
         elif fmt in ['json', 'jsonl']:
@@ -40,15 +36,15 @@ def load_prompts(file_path, format=None, column='prompt', time_col=None):
                 else:
                     data = json.load(f)
                     
-                if isinstance(data, dict) and column in data and isinstance(data[column], list):
-                    data = data[column] # Handle {"prompts": [...]}
+                if isinstance(data, dict) and prompt_col in data and isinstance(data[prompt_col], list):
+                    data = data[prompt_col] # Handle {"prompts": [...]}
                 
                 if isinstance(data, list):
                     for obj in data:
                         if isinstance(obj, dict):
-                            item = {'prompt': str(obj.get(column, list(obj.values())[0]))}
-                            if time_col and time_col in obj:
-                                item['timestamp'] = obj[time_col]
+                            item = {'prompt': str(obj.get(prompt_col, list(obj.values())[0]))}
+                            if timestamp_col and timestamp_col in obj:
+                                item['timestamp'] = obj[timestamp_col]
                             items.append(item)
                         else:
                             items.append({'prompt': str(obj)})
@@ -67,19 +63,19 @@ def load_prompts(file_path, format=None, column='prompt', time_col=None):
 
 def main():
     parser = argparse.ArgumentParser(description="PromptForest Ranger - Audit prompts for injection/jailbreaks")
-    parser.add_argument("input_file", help="Input file path")
-    parser.add_argument("--output", "-o", default="ranger_report.html", help="Output HTML report path")
-    parser.add_argument("--format", "-f", choices=['csv', 'json', 'jsonl', 'txt'], help="Input format")
-    parser.add_argument("--col", "-c", default="prompt", help="Prompt column name for CSV/JSON")
-    parser.add_argument("--workers", "-w", type=int, default=4, help="Parallel workers")
-    parser.add_argument("--config", help="Path to PromptForest config (YAML)")
-    parser.add_argument("--time-col", help="Timestamp column name")
+    parser.add_argument("input", help="Input file path")
+    parser.add_argument("--output", "-o", default="report.html", help="Output HTML report path", required=False)
+    parser.add_argument("--input-format", "-f", choices=['csv', 'json', 'jsonl', 'txt'], help="Input format", required=False)
+    parser.add_argument("--prompt-col", "-p", default="prompt", help="Prompt column name for CSV/JSON", required=False)
+    parser.add_argument("--workers", "-w", type=int, default=4, help="Parallel workers", required=False)
+    parser.add_argument("--config", "-c", help="Path to PromptForest config (YAML)", required=False)
+    parser.add_argument("--timestamp-col", "-t", help="Timestamp column name", required=False)
     
     args = parser.parse_args()
     
     try:
-        print(f"Loading prompts from {args.input_file}...")
-        items = load_prompts(args.input_file, args.format, args.col, args.time_col)
+        print(f"Loading prompts from {args.input}...")
+        items = load_prompts(args.input, args.input_format, args.prompt_col, args.timestamp_col)
         print(f"Loaded {len(items)} prompts.")
     except Exception as e:
         print(f"Error: {e}")

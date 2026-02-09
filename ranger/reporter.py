@@ -1,5 +1,3 @@
-import json
-import os
 from jinja2 import Template
 import datetime
 
@@ -9,7 +7,7 @@ REPORT_TEMPLATE = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PromptForest Ranger Report</title>
+    <title>PromptForest Ranger</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
@@ -39,8 +37,7 @@ REPORT_TEMPLATE = """
 </head>
 <body>
     <div class="container">
-        <h1>PromptForest Ranger Report</h1>
-        <p>Generated on {{ date }}</p>
+        <h1>Report Summary: {{ date }}</h1>
 
         <div class="summary-cards">
             <div class="card">
