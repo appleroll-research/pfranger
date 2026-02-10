@@ -1,4 +1,4 @@
-# Contributing to Ranger
+# Contributing to PFRanger
 
 Thanks for your interest in contributing! We welcome all contributions, whether it’s bug reports, new features, documentation improvements, or general feedback.
 
@@ -7,8 +7,8 @@ Thanks for your interest in contributing! We welcome all contributions, whether 
 1. **Fork the repository** and clone it locally:
 
 ```bash
-git clone https://github.com/appleroll-research/ranger.git
-cd ranger
+git clone https://github.com/appleroll-research/pfranger.git
+cd pfranger
 ```
 
 2. Create a new branch for your work:

@@ -1,1 +1,1 @@
-include ranger/report_template.html
+include pfranger/report_template.html

@@ -6,7 +6,7 @@ long_description = (this_directory / "README.md").read_text(encoding="utf-8")
 
 setup(
     name="pfranger",
-    version="0.1.1",
+    version="0.5.0",
     packages=find_packages(),
     install_requires=[
         "numpy",
@@ -24,7 +24,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'ranger=ranger.cli:main',
+            'pfranger=ranger.cli:main',
         ],
     },
     long_description=long_description,
