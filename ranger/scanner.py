@@ -12,7 +12,7 @@ DEFAULT_CONFIG = {
         {"name": "vijil", "type": "hf", "path": "vijil_dome", "enabled": True, "accuracy_weight": 1.0},
         {"name": "xgboost", "type": "xgboost", "enabled": True, "threshold": 0.10, "accuracy_weight": 0.5}
     ],
-    "settings": {"device": "auto", "fp16": True},
+    "settings": {"device": "auto", "fp16": True,},
     "logging": {"stats": True}
 }
 
@@ -28,7 +28,6 @@ class Scanner:
         print("Initializing PromptForest Engine...")
         
         # Silence initialization unless models need downloading
-        # 
         if self._check_models_present(self.config):
             with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
                 self.ensemble = PFEnsemble(config=self.config)
@@ -46,7 +45,7 @@ class Scanner:
         except:
             return False
 
-    def scan_prompts(self, items, workers=4):
+    def scan_prompts(self, items, workers=1):
         results = []
         with ThreadPoolExecutor(max_workers=workers) as executor:
             future_to_item = {}

@@ -67,7 +67,7 @@ def main():
     parser.add_argument("--output", "-o", default="report.html", help="Output HTML report path", required=False)
     parser.add_argument("--input-format", "-f", choices=['csv', 'json', 'jsonl', 'txt'], help="Input format", required=False)
     parser.add_argument("--prompt-col", "-p", default="prompt", help="Prompt column name for CSV/JSON", required=False)
-    parser.add_argument("--workers", "-w", type=int, default=4, help="Parallel workers", required=False)
+    parser.add_argument("--workers", "-w", type=int, default=1, help="Parallel workers", required=False)
     parser.add_argument("--config", "-c", help="Path to PromptForest config (YAML)", required=False)
     parser.add_argument("--timestamp-col", "-t", help="Timestamp column name", required=False)
     
@@ -106,8 +106,6 @@ def main():
     reporter = Reporter(args.output)
     reporter.generate(results)
     
-    malicious_count = sum(1 for r in results if r.get('is_malicious', False))
-    print(f"\nScan complete. Malicious: {malicious_count}/{len(items)}")
     print(f"Report saved to {args.output}")
 
 if __name__ == "__main__":
