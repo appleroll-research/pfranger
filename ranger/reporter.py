@@ -1,10 +1,13 @@
 from jinja2 import Template
 import datetime
 import os
+import json
+import csv
 
 class Reporter:
-    def __init__(self, output_path):
+    def __init__(self, output_path, output_format=None):
         self.output_path = output_path
+        self.output_format = output_format
     
     def generate(self, results):
         total = len(results)
@@ -42,4 +45,34 @@ class Reporter:
         
         with open(self.output_path, 'w') as f:
             f.write(html_content)
+
+        if self.output_format:
+            fmt = self.output_format.lower()
+            base, ext = os.path.splitext(self.output_path)
+            if ext == '.html':
+                extra_output_path = f"{base}.{fmt}"
+            else:
+                extra_output_path = f"{self.output_path}.{fmt}"
+
+            if fmt == 'json':
+                with open(extra_output_path, 'w') as f:
+                    json.dump(results, f, indent=2, default=str)
+            elif fmt == 'csv':
+                if results:
+                    keys = set()
+                    for r in results:
+                        keys.update(r.keys())
+                    fieldnames = sorted(list(keys))
+                    
+                    with open(extra_output_path, 'w', newline='') as f:
+                        writer = csv.DictWriter(f, fieldnames=fieldnames)
+                        writer.writeheader()
+                        writer.writerows(results)
+            elif fmt in ['text', 'txt']:
+                with open(extra_output_path, 'w') as f:
+                    for r in sorted(results, key=lambda x: x.get('index', 0)):
+                        f.write(f"Prompt: {r.get('prompt', '')}\n")
+                        f.write(f"Score: {r.get('malicious_score', 'N/A')}\n")
+                        f.write(f"Malicious: {r.get('is_malicious', 'N/A')}\n")
+                        f.write("-" * 40 + "\n")
 

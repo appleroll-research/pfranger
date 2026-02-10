@@ -65,6 +65,7 @@ def main():
     parser = argparse.ArgumentParser(description="PromptForest Ranger - Audit prompts for injection/jailbreaks")
     parser.add_argument("input", help="Input file path")
     parser.add_argument("--output", "-o", default="report.html", help="Output HTML report path", required=False)
+    parser.add_argument("--output-format", choices=['csv', 'json', 'text', 'txt'], help="Additional output format", required=False)
     parser.add_argument("--input-format", "-f", choices=['csv', 'json', 'jsonl', 'txt'], help="Input format", required=False)
     parser.add_argument("--prompt-col", "-p", default="prompt", help="Prompt column name for CSV/JSON", required=False)
     parser.add_argument("--workers", "-w", type=int, default=1, help="Parallel workers", required=False)
@@ -103,10 +104,12 @@ def main():
     print(f"Starting scan with {args.workers} workers...")
     results = scanner.scan_prompts(items, workers=args.workers)
     
-    reporter = Reporter(args.output)
+    reporter = Reporter(args.output, args.output_format)
     reporter.generate(results)
     
     print(f"Report saved to {args.output}")
+    if args.output_format:
+        print(f"Additional report saved in {args.output_format} format.")
 
 if __name__ == "__main__":
     main()
