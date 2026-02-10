@@ -68,11 +68,7 @@ class Reporter:
                         writer = csv.DictWriter(f, fieldnames=fieldnames)
                         writer.writeheader()
                         writer.writerows(results)
-            elif fmt in ['text', 'txt']:
+            elif fmt == 'txt':
                 with open(extra_output_path, 'w') as f:
                     for r in sorted(results, key=lambda x: x.get('index', 0)):
-                        f.write(f"Prompt: {r.get('prompt', '')}\n")
-                        f.write(f"Score: {r.get('malicious_score', 'N/A')}\n")
-                        f.write(f"Malicious: {r.get('is_malicious', 'N/A')}\n")
-                        f.write("-" * 40 + "\n")
-
+                        f.write(f"'{r.get('prompt', '')}'\n - Malicious: {r.get('is_malicious', False)}\n - Score: {r.get('malicious_score', -1)}\n - Confidence: {r.get('confidence', -1)}\n - Uncertainty: {r.get('uncertainty', -1)}\n")

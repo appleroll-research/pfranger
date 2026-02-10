@@ -44,6 +44,7 @@ ranger prompts.jsonl -c my_config.yaml
 | `input` | Path to the file containing prompts | Required |
 | `--output`, `-o` | Output path for HTML report | `report.html` |
 | `--input-format`, `-f` | Force input format (csv, json, jsonl, txt) | Auto-detect |
+| `--output-format` | Add additional output format | None |
 | `--prompt-col`, `-p` | Column name for prompts (CSV/JSON) | `prompt` |
 | `--timestamp-col`, `-t` | Column name for timestamp | None |
 | `--workers`, `-w` | Number of parallel worker threads | 4 |
