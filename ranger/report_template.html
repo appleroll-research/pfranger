@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PromptForest Ranger</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .summary-cards { display: flex; gap: 20px; margin-bottom: 20px; }
+        .card { flex: 1; padding: 15px; background: #f8f9fa; border-radius: 6px; border-left: 4px solid #007bff; }
+        .card h3 { margin: 0 0 10px 0; font-size: 14px; color: #666; }
+        .card .value { font-size: 24px; font-weight: bold; }
+        .card.danger { border-left-color: #dc3545; }
+        .card.success { border-left-color: #28a745; }
+        .card.warning { border-left-color: #ffc107; }
+        .charts { display: flex; gap: 20px; margin-bottom: 30px; height: 300px; }
+        .chart-container { flex: 1; position: relative; }
+        table { width: 100%; margin-top: 20px; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .badge-danger { background: #dc3545; color: white; }
+        .badge-success { background: #28a745; color: white; }
+        .badge-warning { background: #ffc107; color: #212529; }
+        .prompt-text { font-family: monospace; color: #555; max-width: 500px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .expand-icon { cursor: pointer; color: #007bff; border: none; background: none; font-size: 16px; }
+        .dt-control { text-align: center; cursor: pointer; }
+        /* DataTables overrides/adjustments */
+        .dataTables_wrapper { margin-top: 20px; }
+        table.dataTable tbody td { vertical-align: middle; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Report Summary: {{ date }}</h1>
+
+        <div class="summary-cards">
+            <div class="card">
+                <h3>Total Prompts</h3>
+                <div class="value">{{ total_prompts }}</div>
+            </div>
+            <div class="card danger">
+                <h3>Malicious (Approx)</h3>
+                <div class="value">{{ malicious_count }}</div>
+            </div>
+            <div class="card">
+                <h3>Avg. Malicious Score</h3>
+                <div class="value">{{ "%.3f"|format(avg_score) }}</div>
+            </div>
+            <div class="card warning">
+                <h3>Avg. Uncertainty</h3>
+                <div class="value">{{ "%.3f"|format(avg_uncertainty) }}</div>
+            </div>
+            <div class="card success">
+                <h3>Safe (Approx)</h3>
+                <div class="value">{{ safe_count }}</div>
+            </div>
+        </div>
+
+        <div class="charts">
+            <div class="chart-container">
+                <canvas id="pieChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="scatterChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="histChart"></canvas>
+            </div>
+        </div>
+        
+        {% if has_time_data %}
+        <div class="charts" style="height: 250px;">
+             <div class="chart-container">
+                <canvas id="timeChart"></canvas>
+            </div>
+        </div>
+        {% endif %}
+
+        <h2>All Prompts</h2>
+        
+        <table id="promptsTable" class="display" style="width:100%">
+            <thead>
+                <tr>
+                    <th width="30"></th>
+                    <th>ID</th>
+                    {% if has_time_data %}<th>Time</th>{% endif %}
+                    <th>Malicious Flag</th>
+                    <th>Score</th>
+                    <th>Uncertainty</th>
+                    <th>Prompt</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in prompts %}
+                <tr>
+                    <td class="dt-control">
+                        <div class="details-content" style="display:none;">
+                            <strong>Full Prompt:</strong><br>{{ item.prompt }}<br><br>
+                            <strong>Analysis:</strong><br><pre>{{ item | tojson(indent=2) }}</pre>
+                        </div>
+                    </td>
+                    <td>{{ item.index }}</td>
+                    {% if has_time_data %}<td>{{ item.timestamp }}</td>{% endif %}
+                    <td>
+                        {% if item.is_malicious %}
+                            <span class="badge badge-danger">True</span>
+                        {% else %}
+                            <span class="badge badge-success">False</span>
+                        {% endif %}
+                    </td>
+                    <td style="background-color: rgba(220, 53, 69, {{ item.malicious_score }}); color: {% if item.malicious_score > 0.5 %}white{% else %}black{% endif %}; font-weight: bold;">
+                        {{ "%.4f"|format(item.malicious_score) }}
+                    </td>
+                    <td style="background-color: rgba(255, 193, 7, {{ item.uncertainty }}); font-weight: bold;">
+                        {{ "%.4f"|format(item.uncertainty) }}
+                    </td>
+                    <td class="prompt-text" title="{{ item.prompt }}">{{ item.prompt[:80] }}...</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Charts
+        const pieCtx = document.getElementById('pieChart').getContext('2d');
+        new Chart(pieCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Malicious', 'Safe'],
+                datasets: [{
+                    data: [{{ malicious_count }}, {{ safe_count }}],
+                    backgroundColor: ['#dc3545', '#28a745']
+                }]
+            },
+            options: { maintainAspectRatio: false, plugins: { title: { display: true, text: 'Approximate Malicious vs Safe' } } }
+        });
+
+        const scores = {{ scores | tojson }};
+        const uncertainties = {{ uncertainties | tojson }};
+        
+        // Scatter Chart: Score vs Uncertainty
+        const scatterData = scores.map((s, i) => ({ x: s, y: uncertainties[i] }));
+        
+        const scatterCtx = document.getElementById('scatterChart').getContext('2d');
+        new Chart(scatterCtx, {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: 'Score vs Uncertainty',
+                    data: scatterData,
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)'
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: { title: { display: true, text: 'Score vs Uncertainty' } },
+                scales: {
+                    x: { title: { display: true, text: 'Malicious Score' }, min: 0, max: 1 },
+                    y: { title: { display: true, text: 'Uncertainty' }, min: 0, max: 1 }
+                }
+            }
+        });
+
+        const bins = Array(20).fill(0);
+        scores.forEach(s => bins[Math.min(Math.floor(s * 20), 19)]++);
+        
+        const histCtx = document.getElementById('histChart').getContext('2d');
+        new Chart(histCtx, {
+            type: 'bar',
+            data: {
+                labels: Array.from({length: 20}, (_, i) => (i/20).toFixed(2) + '-' + ((i+1)/20).toFixed(2)),
+                datasets: [{ label: 'Score Distribution', data: bins, backgroundColor: '#007bff' }]
+            },
+            options: { maintainAspectRatio: false, plugins: { title: { display: true, text: 'Score Distribution' } } }
+        });
+        
+        {% if has_time_data %}
+        const timeCtx = document.getElementById('timeChart').getContext('2d');
+        new Chart(timeCtx, {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: 'Prompt Scores over Time',
+                    data: {{ time_series | tojson }}.map(d => ({ x: new Date(d.t).getTime(), y: d.s })),
+                    backgroundColor: c => c.raw.y > 0.5 ? '#dc3545' : '#28a745'
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: { title: { display: true, text: 'Scores vs Time' } },
+                scales: {
+                    x: { type: 'linear', ticks: { callback: v => new Date(v).toLocaleTimeString() } },
+                    y: { min: 0, max: 1 }
+                }
+            }
+        });
+        {% endif %}
+
+        // DataTables Initialization
+        $(document).ready(function() {
+            var table = $('#promptsTable').DataTable({
+                "pageLength": 25,
+                "order": [[1, "asc"]],
+                "columns": [
+                    { "orderable": false },
+                    null,
+                    {% if has_time_data %}null,{% endif %}
+                    null,
+                    null,
+                    null,
+                    null
+                ]
+            });
+
+            // Add event listener for opening and closing details
+            $('#promptsTable tbody').on('click', 'td.dt-control', function () {
+                var tr = $(this).closest('tr');
+                var row = table.row(tr);
+                var icon = $(this).find('.expand-icon');
+        
+                if (row.child.isShown()) {
+                    // This row is already open - close it
+                    row.child.hide();
+                    tr.removeClass('shown');
+                    icon.text('▶');
+                }
+                else {
+                    // Open this row
+                    var content = $(this).find('.details-content').html();
+                    row.child(content).show();
+                    tr.addClass('shown');
+                    icon.text('▼');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

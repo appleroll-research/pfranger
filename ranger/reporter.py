@@ -3,6 +3,7 @@ import datetime
 import os
 import json
 import csv
+import numpy as np
 
 class Reporter:
     def __init__(self, output_path, output_format=None):
@@ -11,10 +12,17 @@ class Reporter:
     
     def generate(self, results):
         total = len(results)
-        malicious = [r for r in results if r.get('is_malicious', False)]
-        uncertain = [r for r in results if not r.get('is_malicious', False) and r.get('uncertainty', 0.0) > 0.5]
-        safe = [r for r in results if not r.get('is_malicious', False) and r.get('uncertainty', 0.0) <= 0.5]
         
+        # Calculate basic stats
+        malicious_count = len([r for r in results if r.get('is_malicious', False)])
+        safe_count = total - malicious_count
+        
+        scores = [r.get('malicious_score', 0.0) for r in results]
+        uncertainties = [r.get('uncertainty', 0.0) for r in results]
+        
+        avg_score = np.mean(scores) if scores else 0.0
+        avg_uncertainty = np.mean(uncertainties) if uncertainties else 0.0
+
         # Prepare time series data if available
         time_series = []
         if any('timestamp' in r for r in results):
@@ -32,13 +40,13 @@ class Reporter:
         html_content = template.render(
             date=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             total_prompts=total,
-            malicious_count=len(malicious),
-            malicious_percent=(len(malicious)/total*100) if total > 0 else 0,
-            uncertain_count=len(uncertain),
-            uncertain_percent=(len(uncertain)/total*100) if total > 0 else 0,
-            safe_count=len(safe),
+            malicious_count=malicious_count,
+            safe_count=safe_count,
+            avg_score=avg_score,
+            avg_uncertainty=avg_uncertainty,
             prompts=sorted(results, key=lambda x: x.get('index', 0)),
-            scores=[r.get('malicious_score', 0) for r in results],
+            scores=scores,
+            uncertainties=uncertainties,
             has_time_data=bool(time_series),
             time_series=time_series
         )

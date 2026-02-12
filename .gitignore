@@ -8,6 +8,6 @@ JBB.csv
 
 */__pycache__
 *.yaml
-*.html
+report.html
 *.egg-info
 dist/
