@@ -6,7 +6,7 @@ long_description = (this_directory / "README.md").read_text(encoding="utf-8")
 
 setup(
     name="pfranger",
-    version="0.5.0",
+    version="0.7.5",
     packages=find_packages(),
     install_requires=[
         "numpy",
