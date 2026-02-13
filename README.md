@@ -5,7 +5,17 @@
 
 PromptForest Ranger (or **PFRanger**) is a CLI tool for auditing LLM prompts for injection attacks and jailbreaks.  It leverages the PromptForest ensemble engine to scan datasets and generate comprehensive and accurate HTML reports, mitigating the problem of high-certainty false positives.
 
-![PFRanger Report Preview](resources/report-preview.png)
+![PFRanger Report Preview](docs/assets/report-preview.png)
+
+## Intended Use Cases
+We intend this tool to be a swiss army knife: it should be used for multiple situations regarding unsafe prompts. Here are some, but not all, of the ways to use PFRanger
+
+1. Processing Unsafe Datasets
+Huge datasets may contain prompts that weaken a model, making it more vulnerable to jailbreak attempts. PFRanger
+can mitigate this issue before you feed it to your model.
+
+2. Auditing Datasets
+Feeding potentially dangerous datasets into AI model with highly privileged abilities may produce catastrophic results. PFRanger helps by giving you an overview of the dataset's security.
 
 ## Features
 

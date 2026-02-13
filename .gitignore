@@ -11,3 +11,4 @@ JBB.csv
 report.html
 *.egg-info
 dist/
+site/

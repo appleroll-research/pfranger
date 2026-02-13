@@ -1,0 +1,42 @@
+site_name: PromptForest Ranger (PFRanger)
+site_description: CLI tool for auditing LLM prompts for injection attacks and jailbreaks.
+site_author: Appleroll Research
+repo_url: https://github.com/appleroll-research/pfranger
+repo_name: appleroll-research/pfranger
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: teal
+      accent: deep purple
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: teal
+      accent: deep purple
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.expand
+    - content.code.copy
+    - content.action.edit
+
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - User Guide:
+    - Usage: usage.md
+    - Configuration: configuration.md
+  - Contributing: contributing.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.details

@@ -1,0 +1,55 @@
+# Contributing
+
+Thanks for your interest in contributing! We welcome all contributions, whether it’s bug reports, new features, documentation improvements, or general feedback.
+
+## How to Contribute
+
+1.  **Fork the repository** and clone it locally:
+    ```bash
+    git clone https://github.com/appleroll-research/pfranger.git
+    cd pfranger
+    ```
+
+2.  Create a new branch for your work:
+    ```bash
+    git checkout -b my-feature
+    ```
+
+3.  Make your changes, add tests if applicable, and run them.
+
+4.  Commit your changes with a clear message:
+    ```bash
+    git commit -m "[tag] Add feature X"
+    ```
+
+    You must add a tag at the front of your commit message. Please refer to the table below:
+
+    | Tag | Meaning |
+    | :--- | :---: |
+    | `[improv]` | Improvement of existing feature |
+    | `[bug]` | Fixed a bug |
+    | `[docs]` | Documentation update |
+    | `[feat]` | Adding a new feature |
+
+5.  Push your branch to your fork:
+    ```bash
+    git push origin my-feature
+    ```
+
+6.  Open a Pull Request (PR) on the main repository. Include a clear description of what you did and why.
+
+## Good First Issues
+
+We label beginner-friendly tasks with `good first issue`. If this is your first contribution, look for those issues to get started.
+
+## Code Style
+
+-   Python 3.11+
+-   Follow PEP8 style guidelines
+-   Include docstrings for new functions or classes
+-   Write tests for new features whenever possible
+
+## Feedback & Discussion
+
+-   Open an issue if you have ideas, suggestions, or questions before contributing.
+-   Engage respectfully and constructively with maintainers and other contributors.
