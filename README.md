@@ -2,6 +2,8 @@
 
 [![PyPI Downloads](https://img.shields.io/pypi/dm/promptforest)](https://pypi.org/project/pfranger)
 [![Apache License](https://img.shields.io/badge/license-Apache%20License%202.0-blue)](LICENSE)
+[![Documentation](https://img.shields.io/badge/docs-pfranger-blue.svg)](https://appleroll-research.github.io/pfranger/)
+
 
 PromptForest Ranger (or **PFRanger**) is a CLI tool for auditing LLM prompts for injection attacks and jailbreaks.  It leverages the PromptForest ensemble engine to scan datasets and generate comprehensive and accurate HTML reports, mitigating the problem of high-certainty false positives.
 
@@ -33,6 +35,9 @@ Supports a large number of input and output file types. Also outputs a shareable
 
 ## Downloading Models
 PromptForest automatically handles all model downloading on first run. Downloading takes around 3GB disk space and around a minute to download on consumer network download speeds.
+
+## Documentation
+A simple quick start guide is provided below. You can view the official wiki in [GitHub Pages](https://appleroll-research.github.io/pfranger/), and the DeepWiki version [here](https://deepwiki.com/appleroll-research/pfranger) for those interested in how Ranger works under-the-hood.
 
 ## Installation
 
