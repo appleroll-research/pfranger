@@ -3,6 +3,7 @@
 [![PyPI Downloads](https://img.shields.io/pypi/dm/promptforest)](https://pypi.org/project/pfranger)
 [![Apache License](https://img.shields.io/badge/license-Apache%20License%202.0-blue)](LICENSE)
 [![Documentation](https://img.shields.io/badge/docs-pfranger-blue.svg)](https://appleroll-research.github.io/pfranger/)
+[![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-blue)](https://huggingface.co/spaces/Appleroll-Research/PFRanger-Demo)
 
 **This project is actively in development! If you have any questions or want to help out, you can reach out via [issues](https://github.com/appleroll-research/pfranger/issues) or [discussions](https://github.com/appleroll-research/pfranger/discussions), or send me an [email](mailto:ethanzhangyixuan@gmail.com).**
 
