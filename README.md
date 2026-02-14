@@ -4,6 +4,8 @@
 [![Apache License](https://img.shields.io/badge/license-Apache%20License%202.0-blue)](LICENSE)
 [![Documentation](https://img.shields.io/badge/docs-pfranger-blue.svg)](https://appleroll-research.github.io/pfranger/)
 
+**This project is actively in development! If you have any questions or want to help out, you can reach out via [issues](https://github.com/appleroll-research/pfranger/issues) or [discussions](https://github.com/appleroll-research/pfranger/discussions), or send me an [email](mailto:ethanzhangyixuan@gmail.com).**
+
 
 PromptForest Ranger (or **PFRanger**) is a CLI tool for auditing LLM prompts for injection attacks and jailbreaks.  It leverages the PromptForest ensemble engine to scan datasets and generate comprehensive and accurate HTML reports, mitigating the problem of high-certainty false positives.
 
